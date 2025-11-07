@@ -1,1 +1,145 @@
-<h1><font color="green">MICHEL GEY</h1></font>
+<!doctype html>
+
+<!--
+  holaa_ip_page.html
+  Página simple que al entrar muestra "HOLAA" y la IP del visitante + país.
+
+  Instrucciones:
+  - Guarda este archivo como holaa_ip_page.html y ábrelo en un servidor local (recomendado) o súbelo a un hosting.
+    Para servidor local rápido: `python -m http.server 8000` y abre http://localhost:8000/holaa_ip_page.html
+  - La página consulta una API pública de geolocalización (ipapi.co). Si abres el archivo con file:// puede bloquearse por CORS.
+
+  Nota: Esta página es para uso personal y educativo. Funciona con la mayoría de VPNs: al cambiar de IP y recargar, mostrará el nuevo país.
+--><html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HOLAA — IP & País</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa6b2}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:linear-gradient(180deg,#071022 0%, #081426 100%);display:flex;align-items:center;justify-content:center;padding:24px;color:#e6eef6}
+    .card{width:min(720px,96%);background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:12px;padding:32px;box-shadow:0 8px 30px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+    h1{font-size:56px;margin:0 0 8px;letter-spacing:1px}
+    .sub{color:var(--muted);margin:0 0 20px}
+    .info{display:flex;align-items:center;gap:18px}
+    .flag{font-size:52px}
+    .meta{line-height:1.2}
+    .meta .big{font-size:20px;font-weight:700}
+    .meta .small{font-size:13px;color:var(--muted)}
+    .controls{margin-top:18px;display:flex;gap:10px}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:inherit;cursor:pointer}
+    button.primary{background:var(--accent);color:#042023;border:0}
+    .status{margin-top:12px;color:var(--muted);font-size:13px}
+    footer{margin-top:18px;color:var(--muted);font-size:12px}
+    @media (max-width:520px){h1{font-size:40px}.flag{font-size:44px}}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>HOLAA</h1>
+    <p class="sub">Detectando tu IP y país... (si usas VPN, mostrará el país de la IP asignada)</p><div class="info">
+  <div class="flag" id="flag">🌐</div>
+  <div class="meta">
+    <div class="big" id="country">Cargando...</div>
+    <div class="small">IP: <span id="ip">—</span> · Ciudad: <span id="city">—</span> · ISP: <span id="org">—</span></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="refreshBtn">Refrescar ahora</button>
+  <button id="autoToggle" class="primary">Auto-refrescar: ON (10s)</button>
+</div>
+
+<div class="status" id="status">Última comprobación: —</div>
+<footer>Consejo: cambia de VPN o desconéctala y recarga la página para ver el país cambiar.</footer>
+
+  </div>  <script>
+    // Config
+    const GEO_API = 'https://ipapi.co/json/'; // devuelve country_name, country, ip, city, org, region
+    let autoRefresh = true;
+    let autoInterval = 10000; // ms
+    let lastIp = null;
+
+    const elCountry = document.getElementById('country');
+    const elIp = document.getElementById('ip');
+    const elCity = document.getElementById('city');
+    const elOrg = document.getElementById('org');
+    const elFlag = document.getElementById('flag');
+    const elStatus = document.getElementById('status');
+    const btn = document.getElementById('refreshBtn');
+    const autoBtn = document.getElementById('autoToggle');
+
+    // Convierte código ISO (e.g. BG) a emoji bandera
+    function countryCodeToEmoji(countryCode) {
+      if(!countryCode) return '🌐';
+      const code = countryCode.toUpperCase();
+      // A -> regional indicator symbol letter A
+      const OFFSET = 127397;
+      return code.replace(/./g, char => String.fromCodePoint(char.codePointAt(0) + OFFSET));
+    }
+
+    async function fetchGeo() {
+      try {
+        const res = await fetch(GEO_API, {cache: 'no-store'});
+        if(!res.ok) throw new Error('API no responde: ' + res.status);
+        const data = await res.json();
+
+        const ip = data.ip || '—';
+        const country = data.country_name || data.country || 'Desconocido';
+        const countryCode = data.country || data.country_code || data.countryCode || '';
+        const city = data.city || data.region || '—';
+        const org = data.org || data.org_name || '—';
+
+        elIp.textContent = ip;
+        elCountry.textContent = country;
+        elCity.textContent = city;
+        elOrg.textContent = org;
+        elFlag.textContent = countryCodeToEmoji(countryCode);
+
+        const now = new Date();
+        elStatus.textContent = 'Última comprobación: ' + now.toLocaleString();
+
+        // Si la IP cambió (ej: cambiaste VPN), actualizamos visualmente
+        if(lastIp && lastIp !== ip) {
+          // pequeño pulso visual
+          elCountry.animate([
+            {transform: 'scale(1)'},
+            {transform: 'scale(1.04)'},
+            {transform: 'scale(1)'}
+          ], {duration: 420});
+        }
+        lastIp = ip;
+
+        return data;
+      } catch (err) {
+        elStatus.textContent = 'Error al detectar IP: ' + err.message;
+        elCountry.textContent = 'Error';
+        elIp.textContent = '—';
+        elFlag.textContent = '⚠️';
+        return null;
+      }
+    }
+
+    btn.addEventListener('click', () => fetchGeo());
+
+    autoBtn.addEventListener('click', () => {
+      autoRefresh = !autoRefresh;
+      autoBtn.textContent = `Auto-refrescar: ${autoRefresh? 'ON' : 'OFF'} (${autoInterval/1000}s)`;
+      autoBtn.classList.toggle('primary', autoRefresh);
+    });
+
+    // Primera carga
+    fetchGeo();
+
+    // Auto-refresh loop
+    setInterval(() => {
+      if(autoRefresh) fetchGeo();
+    }, autoInterval);
+
+    // Mejor experiencia: actualizar también cuando la pestaña vuelve a estar visible
+    document.addEventListener('visibilitychange', () => {
+      if(document.visibilityState === 'visible') fetchGeo();
+    });
+  </script></body>
+</html>
