@@ -14,113 +14,158 @@
         align-items: center;
         height: 100vh;
         overflow: hidden;
-    }.container {
-    text-align: center;
+        animation: bgMove 6s infinite alternate ease-in-out;
+    }@keyframes bgMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 100% 100%; }
 }
 
-.seal {
-    background: #fff;
-    padding: 20px 40px;
-    border-radius: 20px;
-    font-size: 26px;
-    font-weight: bold;
+.envelope-container {
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: float 3s infinite ease-in-out;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+.envelope {
+    width: 260px;
+    height: 170px;
+    background: white;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.envelope:before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 130px solid transparent;
+    border-right: 130px solid transparent;
+    border-top: 90px solid #ff4fa1;
+    top: 0;
+    left: 0;
+    transition: transform .6s;
+    transform-origin: top;
+}
+
+.open .envelope:before {
+    transform: rotateX(180deg);
+}
+
+.seal-text {
+    margin-top: 15px;
+    background: rgba(255,255,255,0.8);
+    padding: 10px 25px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 22px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    transition: transform 0.3s;
+    animation: pulse 1.6s infinite;
     user-select: none;
 }
 
-.seal:hover {
-    transform: scale(1.05);
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 .letter {
-    width: 0;
-    height: 0;
     opacity: 0;
-    overflow: hidden;
-    background: white;
-    padding: 0 20px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    transform: translateY(40px);
     transition: all 0.7s ease;
+    background: white;
+    margin-top: 25px;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    width: 320px;
+    text-align: center;
 }
 
 .letter.open {
-    width: 330px;
-    height: auto;
     opacity: 1;
-    padding: 30px;
+    transform: translateY(0);
 }
 
 h1 {
-    font-size: 32px;
+    font-size: 34px;
     color: #ff3ea5;
     margin-bottom: 10px;
+    animation: glow 2s infinite;
+}
+
+@keyframes glow {
+    0% { text-shadow: 0 0 10px #ff9de4; }
+    50% { text-shadow: 0 0 20px #ff4fa1; }
+    100% { text-shadow: 0 0 10px #ff9de4; }
 }
 
 .glow-text {
     font-size: 24px;
     font-weight: bold;
     color: #000;
-    text-shadow: 0 0 10px #ff9de4, 0 0 20px #ffa7ea;
 }
 
-.confetti {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-}
+/* confetti */
+.confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 
 </style>
 </head>
-<body><div class="container">
-    <div class="seal" onclick="openLetter()">📜 Abre el sello</div>
-    <div id="letter" class="letter">
-        <h1>🎉 FELIZ CUMPLEAÑOS 🎉</h1>
-        <p class="glow-text">DE PARTE MÍA Y DEL TÍO</p>
-    </div>
+<body><div class="envelope-container" onclick="openLetter()" id="envBox">
+    <div class="envelope"></div>
+    <div class="seal-text">📜 Abre el sello</div>
+</div><div id="letter" class="letter">
+    <h1>🎉 FELIZ CUMPLEAÑOS 🎉</h1>
+    <p class="glow-text">DE PARTE MÍA Y DEL TÍO</p>
 </div><canvas class="confetti" id="confettiCanvas"></canvas>
 
 <script>
-    function openLetter() {
+function openLetter() {
+    document.getElementById("envBox").classList.add("open");
+    setTimeout(() => {
         document.getElementById("letter").classList.add("open");
         startConfetti();
-    }
+    }, 600);
+}
 
-    const canvas = document.getElementById("confettiCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+const canvas = document.getElementById("confettiCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+let confetti = [];
 
-    let confetti = [];
-
-    function startConfetti() {
-        for (let i = 0; i < 150; i++) {
-            confetti.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 8 + 4,
-                speed: Math.random() * 3 + 2,
-                color: `hsl(${Math.random() * 360}, 90%, 60%)`
-            });
-        }
-        animate();
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confetti.forEach((p) => {
-            p.y += p.speed;
-            if (p.y > canvas.height) p.y = -10;
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
+function startConfetti() {
+    for (let i = 0; i < 200; i++) {
+        confetti.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            size: Math.random() * 8 + 4,
+            speed: Math.random() * 4 + 2,
+            color: `hsl(${Math.random() * 360}, 90%, 60%)`
         });
-        requestAnimationFrame(animate);
     }
+    animate();
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confetti.forEach((p) => {
+        p.y += p.speed;
+        if (p.y > canvas.height) p.y = -10;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+    requestAnimationFrame(animate);
+}
 </script></body>
 </html>
